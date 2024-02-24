@@ -1,2 +1,2 @@
-# Windows 95 Normal Edition
+# Windows 7 Normal Edition
 # v1.0

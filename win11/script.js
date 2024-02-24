@@ -1,220 +1,115 @@
-const start = document.querySelector("[data-start]");
-const windows =  [... document.querySelectorAll("[data-window]")];
-const triggers = [... document.querySelectorAll("[data-window-trigger]")];
-const errors = [... document.querySelectorAll("[data-error-trigger]")];
-
-start.addEventListener("click", e => {
-	if(start.checked) {
-		start.setAttribute("checked", "");
-	} else {
-		start.removeAttribute("checked");
-	}
-	triggers.forEach(trigger=>{
-		trigger.classList.remove("active");
+var x = null;
+var y = null;
+document.addEventListener('mousemove', onMouseUpdate, false);
+document.addEventListener('mouseenter', onMouseUpdate, false);
+function onMouseUpdate(e) {
+	x = e.pageX;
+	y = e.pageY;
+	document.querySelectorAll(".dragging").forEach((element) => {
+		element.style.position=`absolute`
+		var ny = screen.height+y
+		var nx = screen.width+x
+		let getContainerStyle = window.getComputedStyle(element);
+		let leftValue = parseInt(getContainerStyle.left);
+		let topValue = parseInt(getContainerStyle.top);
+		element.style.left = `${x-10}px`;
+		element.style.top = `${y-10}px`;
 	});
-});
-
-const desktop = document.querySelector("#icons");
-desktop.addEventListener("click", e => {
-	triggers.forEach(trigger=>{
-		trigger.classList.remove("active");
-	});
-	start.checked = false;
-	start.removeAttribute("checked");
-});
-
-const taskbar = document.querySelector("#window-taskbar");
-const close = taskbar.querySelector("[data-close]");
-close.removeAttribute("disabled");
-const applies = [... document.querySelectorAll("[data-apply]")];
-const global = [... document.querySelectorAll("[data-global-option]")];
-const options = [... document.querySelectorAll("[data-option]")];
-const outline = document.querySelector("#start-menu-outline");
-options.forEach(option => {
-	option.addEventListener("click", e => {
-		applies[1].removeAttribute("disabled")
-	})
-})
-applies.forEach(apply => {
-	apply.addEventListener("click", e => {
-		options.forEach((option, index) => {
-			if(option.checked) {
-				global[index].checked = true;
-				global[index].setAttribute("checked", "");
-			} else {
-				global[index].checked = false;
-				global[index].removeAttribute("checked");
-			}
-		});
-	});
-});
-
-const bars = [... document.querySelectorAll(".menu-status-bar")];
-bars.forEach(bar=>{
-	bar.addEventListener("click", e => {
-		if(bar.checked) {
-			bar.setAttribute("checked", "");
-		} else {
-			bar.removeAttribute("checked");
-		}
-	});
-});
-
-const welcome = document.querySelector("#welcome");
-const welcomeInside = document.querySelector("#window-welcome .window-inside");
-errors.forEach(error=>{
-	let name = error.getAttribute("data-name");
-	let alert = document.querySelector(`#alert-${name}`);
-	let retry = alert.querySelector("[data-retry]");
-	error.addEventListener("click", e => {
-		if(error.checked) {
-			error.setAttribute("checked", "");
-			if(retry) retry.focus();
-			if(name == "blue-screen") {
-				document.addEventListener("keydown", e => {
-					if (e.key === "Enter" && error.checked) {
-						error.checked = false;
-						error.removeAttribute("checked");
-					} else if (e.key === "Control") {
-						error.checked = false;
-						error.removeAttribute("checked");
-						start.checked = false;
-						start.removeAttribute("checked");
-						triggers.forEach(trigger=>{
-							trigger.checked = false;
-							trigger.classList.remove("active");
-						});
-						welcome.checked = true;
-						welcome.setAttribute("checked", "");
-						welcome.classList.add("active");
-						welcomeInside.removeAttribute("style");
-					} else {
-						error.checked = false;
-						error.removeAttribute("checked");
-					}
-				});
-			}
-		} else {
-			error.removeAttribute("checked");
-		}
-	});
-});
-
-let order = 0;
-let layer = 10;
-triggers.forEach(trigger=>{
-	let name = trigger.getAttribute("data-name");
-	let window = document.querySelector(`#window-${name}`);
-	let inside = window.querySelector(".window-inside");
-	let tab = document.querySelector(`.tab-${name}`);
-	let menu = window.querySelector("[data-menu]");
-	let max = document.querySelector(`#${name}-maximize`);
-	let drag;
-	window.addEventListener("click", e => {
-		start.checked = false;
-		start.removeAttribute("checked");
-		if(!trigger.classList.contains("active")) {
-			triggers.forEach(trigger=>{
-				trigger.classList.remove("active");
-			});
-			trigger.classList.add("active");
-		}
-	});
-	trigger.addEventListener("click", e => {
-		start.checked = false;
-		start.removeAttribute("checked");
-		if(trigger.checked) {
-			trigger.setAttribute("checked", "");
-			triggers.forEach(trigger=>{
-				trigger.classList.remove("active");
-			});
-			trigger.classList.add("active");
-			order = order + 1;
-			if(tab) tab.style.order = order;
-			layer = layer + 1;
-			window.style.zIndex = layer;
-			window.setAttribute("data-index", layer);
-			drag = new Draggabilly(window, {
-				handle: ".window-nav",
-				containment: true
-			});
-			if(window == taskbar) close.focus();
-		} else {
-			trigger.classList.remove("active");
-			trigger.removeAttribute("checked");
-			inside.removeAttribute("style");
-			window.removeAttribute("data-index");
-			if(drag != undefined) drag.destroy();
-			window.removeAttribute("style");
-			if(menu) {
-				menu.checked = false;
-				menu.removeAttribute("checked");
-			}
-			if(max) max.checked = false;
-		}
-	});
-});
-
-const minimizers = [... document.querySelectorAll("[data-minimize]")];
-minimizers.forEach((minimizer, index)=>{
-	let name = minimizer.getAttribute("data-name");
-	let trigger = document.querySelector(`#${name}`);
-	let tab = document.querySelector(`.tab-${name} .activate`);
-	let window = document.querySelector(`#window-${name}`);
-	tab.addEventListener("click", e => {
-		triggers.forEach(trigger=>{
-			trigger.classList.remove("active");
-		});
-		trigger.classList.add("active");
-		let layers = [... document.querySelectorAll("[data-index]")];
-		if(layers.length > 1 && !minimizer.checked) {
-			let values = [];
-			layers.forEach(layer=>{
-				values.push(layer.getAttribute("data-index"));
-			});
-			let highest = Math.max(...values) + 1;
-			window.style.zIndex = highest;
-			window.setAttribute("data-index", highest);
-		}
-	});
-	minimizer.addEventListener("click", e => {
-		if(minimizer.checked) {
-			minimizer.setAttribute("checked", "");
-			trigger.classList.remove("active");
-		} else {
-			minimizer.removeAttribute("checked");
-			triggers.forEach(trigger=>{
-				trigger.classList.remove("active");
-			});
-			trigger.classList.add("active");
-		}
-	});
-});
-
-windows.forEach(window=>{
-	let menu = window.querySelector("[data-menu]");
-	let toggle = window.querySelector("[data-toggle]");
-	let labels =  [... window.querySelectorAll("[data-label]")];
-	if(toggle) {
-		toggle.addEventListener("pointerdown", e => {
-			menu.checked = true;
-			menu.setAttribute("checked", "");
-		});
-	}
-	if(labels.length > 0) {
-		labels.forEach(label => {
-			label.addEventListener("click", e => {
-				menu.checked = false;
-				menu.removeAttribute("checked");
-			});
-		});
-	}
-});
-
-const time = document.querySelector(".clock");
-const updateTime = () => {
-	let date = luxon.DateTime.fromJSDate(new Date()).toLocaleString(luxon.DateTime.TIME_SIMPLE);
-	time.innerHTML = date;
 }
-updateTime();
-setInterval(() => updateTime(), 1000);
+function getMouseX() {
+	return x;
+}
+function getMouseY() {
+	return y;
+}
+
+function createWindow(name,code) {
+	document.getElementById("windows").innerHTML=`<div class="clwnds window active" style="max-width:80%;width: 400px;">
+    <div class="title-bar">
+        <div class="title-bar-text">${name}</div>
+        <div class="title-bar-controls">
+            <button aria-label="Minimize"></button>
+            <button aria-label="Maximize"></button>
+            <button aria-label="Close" onclick='this.closest(".title-bar-controls").closest(".title-bar").closest(".clwnds").remove()'></button>
+        </div>
+    </div>
+    <div class="window-body has-space">
+        ${code}
+    </div>
+</div>`
+	document.querySelector(".clwnds").style.top=screen.height/4
+	document.querySelector(".clwnds").style.left=screen.width/4
+	var elmt = document.querySelector(".title-bar")
+	elmt.addEventListener("mousedown", () => {
+		if (!!document.querySelector(".clwnds .title-bar")) {
+			document.querySelector(".clwnds").classList.add("dragging");
+		}
+	});
+	elmt.addEventListener("mouseup", () => {
+		if (!!document.querySelector(".clwnds .title-bar")) {
+			document.querySelector(".clwnds").classList.remove("dragging");
+		}
+	});
+}
+
+function setcursor(cur){
+	stylus.innerHTML=`* {
+        cursor: default;
+    }`
+	stylus.innerHTML=stylus.innerHTML.replace("default",cur)
+}
+
+if (document.addEventListener) {
+	document.addEventListener('contextmenu', function(e) {
+		document.getElementById("conmenuelem").style.display="block"
+		document.getElementById("conmenuelem").style.pointerEvents=`all`
+		document.getElementById("conmenuelem").style.top=y-10+'px';
+		document.getElementById("conmenuelem").style.left=x-10+'px';
+		document.getElementById("conmenuelem").style.opacity="1"
+		e.preventDefault();
+	}, false);
+} else {
+	document.attachEvent('oncontextmenu', function() {
+		window.event.returnValue = false;
+	});
+}
+
+
+var foldercode
+
+async function updatefolder() {
+	foldercode=``
+	let path = location.hash.replace("#","");
+	let disk = await fetch(`https://directoryclient.onrender.com/disk/?q=`+path);
+	let dr = await disk.json();
+	dr.folders.forEach(e => foldercode+="<div class='folderId' onclick='location.hash+=`/"+e+"`'>Folder:"+e+"</div><br/>")
+	dr.files.forEach(e => foldercode+="<div class='folderId' onclick='location.hash+=`/"+e+"`'>File:"+e+"</div><br/>")
+	document.querySelector(".window-body").innerHTML=``
+	document.querySelector(".window-body").innerHTML=foldercode
+}
+
+async function loaded() {
+
+
+	let response = await fetch(`https://raw.githubusercontent.com/zxcbelaz/Windows95NormalEdition/master/README.md`);
+
+	let commits = await response.text();
+	console.log(commits.replaceAll("#","<br/>"))
+	createWindow("Sigma Updates",commits.replaceAll("#","<br/>"))
+
+
+	let path = location.hash.replace("#","")
+	let disk = await fetch(`https://directoryclient.onrender.com/disk/?q=`+path);
+
+	let dr = await disk.json();
+
+	dr.folders.forEach(e => foldercode+="<div class='folderId' onclick='location.hash+=`"+e+"/`;updatefolder()'>"+e+"</div><br/>")
+
+	location.hash="/";
+	createWindow("folder",foldercode)
+}
+
+document.addEventListener("DOMContentLoaded", loaded)
+
+
+
