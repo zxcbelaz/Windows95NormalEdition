@@ -1,0 +1,52 @@
+* {
+    user-select: none;
+    margin: 0;
+    cursor: none;
+}
+
+
+
+
+@keyframes caseSlite {
+    0% {
+        transform: translate(200%);
+    }
+    100% {
+        transform: translate(-200%);
+    }
+}
+
+.anima1 {
+    animation: 3s infinite alternate caseSlite;
+}
+
+.case {
+    align-items: center;
+    justify-content: center;
+    width: 100vw;
+    margin: 0px;
+    padding: 0px;
+    height:20%;
+    background-color: rgba(130, 99, 149, 0.7);
+    position: absolute;
+    top:40%;
+    display: flex;
+}
+
+.case .caseItem {
+    background-color: black;
+    width: 20%;
+    height: 100%;
+    text-align: center;
+    display: flex;
+}
+
+.case .caseItem * {
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    margin: auto;
+}
+
+
